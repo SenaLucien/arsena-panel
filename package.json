@@ -1,0 +1,6 @@
+{
+  "name": "arsena-panel",
+  "version": "1.0.0",
+  "description": "Arsena Panel - Pterodactyl Reseller",
+  "engines": { "node": "18.x" }
+}

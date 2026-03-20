@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arsena Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0: #020508;
+  --bg1: #060d12;
+  --bg2: #0a1520;
+  --glass: rgba(10,25,40,0.6);
+  --glass2: rgba(15,35,55,0.8);
+  --border: rgba(0,255,136,0.1);
+  --border2: rgba(0,255,136,0.2);
+  --neon: #00ff88;
+  --neon2: #00ccff;
+  --neon3: #ff6b35;
+  --text: #e8f4f0;
+  --muted: #4a7060;
+  --danger: #ff4466;
+  --warn: #ffaa00;
+  --glow: 0 0 20px rgba(0,255,136,0.3);
+  --glow2: 0 0 30px rgba(0,204,255,0.2);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg0);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ── ANIMATED BG ── */
+.bg-canvas {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+}
+.bg-canvas::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 20%, rgba(0,255,136,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(0,204,255,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 50% 50%, rgba(0,20,35,0.8) 0%, transparent 100%);
+}
+.grid-lines {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,136,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridDrift 30s linear infinite;
+}
+@keyframes gridDrift {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(60px); }
+}
+.scanline {
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+}
+
+/* ── PARTICLES ── */
+.particle {
+  position: absolute; border-radius: 50%;
+  background: var(--neon); opacity: 0;
+  animation: float linear infinite;
+}
+@keyframes float {
+  0% { opacity: 0; transform: translateY(100vh) scale(0); }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.2; }
+  100% { opacity: 0; transform: translateY(-20px) scale(1.5); }
+}
+
+/* ── LOGIN PAGE ── */
+#login-page {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+}
+
+.login-box {
+  width: 420px;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  padding: 48px 40px;
+  box-shadow: 0 0 60px rgba(0,255,136,0.08), 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(0,255,136,0.1);
+  animation: loginIn .6s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+  overflow: hidden;
+}
+.login-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--neon), transparent);
+  animation: shimmer 3s ease infinite;
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.4; } 50% { opacity: 1; }
+}
+@keyframes loginIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.logo-block { text-align: center; margin-bottom: 36px; }
+.logo-hex {
+  width: 64px; height: 64px; margin: 0 auto 16px;
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.logo-hex::before {
+  content: '⬡';
+  position: absolute; font-size: 64px; color: var(--neon); line-height: 1;
+  filter: drop-shadow(0 0 12px var(--neon));
+  animation: hexPulse 2s ease infinite;
+}
+@keyframes hexPulse {
+  0%, 100% { filter: drop-shadow(0 0 8px var(--neon)); }
+  50% { filter: drop-shadow(0 0 24px var(--neon)); }
+}
+.logo-hex .hex-inner { position: relative; z-index: 1; font-size: 22px; }
+.logo-name {
+  font-size: 28px; font-weight: 900; letter-spacing: -1px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.logo-name .n1 { color: var(--neon); text-shadow: 0 0 20px var(--neon); }
+.logo-name .n2 { color: var(--text); }
+.logo-tag {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  color: var(--muted); letter-spacing: 3px; text-transform: uppercase; margin-top: 6px;
+}
+.logo-tag span { color: var(--neon); }
+
+.role-pills {
+  display: flex; gap: 6px; margin-bottom: 28px;
+  background: rgba(0,0,0,0.4); border-radius: 12px; padding: 5px;
+}
+.pill {
+  flex: 1; padding: 9px; border: none; border-radius: 9px;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all .25s;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: .5px;
+  color: var(--muted); background: transparent;
+}
+.pill.active {
+  background: rgba(0,255,136,0.12);
+  color: var(--neon);
+  box-shadow: 0 0 0 1px rgba(0,255,136,0.3), inset 0 0 12px rgba(0,255,136,0.05);
+}
+.pill.active.own-pill { color: var(--warn); background: rgba(255,170,0,0.1); box-shadow: 0 0 0 1px rgba(255,170,0,0.3); }
+
+.f-wrap { margin-bottom: 20px; }
+.f-label {
+  font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 1.5px; text-transform: uppercase;
+}
+.f-label::before { content: '//'; color: var(--neon); opacity: .6; }
+
+.f-inp {
+  width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 16px;
+  color: var(--text); font-size: 14px; font-family: 'JetBrains Mono', monospace;
+  outline: none; transition: all .2s; letter-spacing: .5px;
+}
+.f-inp:focus {
+  border-color: var(--neon);
+  box-shadow: 0 0 0 3px rgba(0,255,136,0.1), 0 0 20px rgba(0,255,136,0.05);
+  background: rgba(0,255,136,0.03);
+}
+
+.btn-enter {
+  width: 100%; padding: 14px; border: none; border-radius: 10px;
+  font-size: 13px; font-weight: 700; cursor: pointer; transition: all .25s;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; text-transform: uppercase;
+  position: relative; overflow: hidden;
+}
+.btn-enter.res-btn {
+  background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05));
+  color: var(--neon); border: 1px solid rgba(0,255,136,0.4);
+  box-shadow: 0 0 20px rgba(0,255,136,0.1);
+}
+.btn-enter.res-btn:hover { background: rgba(0,255,136,0.2); box-shadow: var(--glow); transform: translateY(-1px); }
+.btn-enter.own-btn {
+  background: linear-gradient(135deg, rgba(255,170,0,0.15), rgba(255,170,0,0.05));
+  color: var(--warn); border: 1px solid rgba(255,170,0,0.4);
+}
+.btn-enter.own-btn:hover { background: rgba(255,170,0,0.2); box-shadow: 0 0 20px rgba(255,170,0,0.2); transform: translateY(-1px); }
+
+.login-err {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--danger); text-align: center; margin-top: 12px; display: none;
+}
+.login-err::before { content: '! '; }
+
+/* ── DASHBOARD ── */
+#dashboard { display: none; position: relative; z-index: 1; }
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+  background: rgba(4,12,18,0.95);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  z-index: 200;
+}
+.sidebar::after {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0; width: 1px;
+  background: linear-gradient(180deg, transparent, var(--neon), transparent);
+  opacity: .15;
+}
+
+.sb-top { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.sb-logo-text {
+  font-size: 16px; font-weight: 800; font-family: 'JetBrains Mono', monospace; letter-spacing: -.5px;
+}
+.sb-logo-text .g { color: var(--neon); text-shadow: 0 0 12px var(--neon); }
+.sb-ver {
+  font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace;
+  margin-top: 3px; letter-spacing: 1px;
+}
+.sb-role {
+  display: inline-flex; align-items: center; gap: 5px; margin-top: 8px;
+  font-size: 10px; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px;
+  padding: 3px 10px; border-radius: 20px; text-transform: uppercase;
+}
+.sb-role.res { color: var(--neon); background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); }
+.sb-role.own { color: var(--warn); background: rgba(255,170,0,0.08); border: 1px solid rgba(255,170,0,0.2); }
+.sb-role::before { content: '●'; font-size: 7px; }
+
+.sb-group { padding: 0 10px; margin-bottom: 4px; }
+.sb-group-label {
+  font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 2px; text-transform: uppercase; padding: 8px 10px 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.sb-group-label::before { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.nav-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px;
+  border: none; background: transparent; border-radius: 8px; cursor: pointer;
+  color: var(--muted); font-size: 12px; font-weight: 500; font-family: 'Outfit', sans-serif;
+  transition: all .2s; text-align: left; position: relative;
+}
+.nav-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+.nav-btn.active {
+  color: var(--neon); background: rgba(0,255,136,0.07);
+  box-shadow: inset 3px 0 0 var(--neon);
+}
+.nav-btn .n-icon { font-size: 14px; width: 20px; text-align: center; }
+.nav-btn .n-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--neon);
+  margin-left: auto; box-shadow: 0 0 6px var(--neon); display: none;
+}
+.nav-btn.active .n-dot { display: block; }
+
+.sb-bottom { margin-top: auto; padding: 12px 10px; border-top: 1px solid var(--border); }
+.btn-out {
+  display: flex; align-items: center; gap: 9px; width: 100%; padding: 10px 12px;
+  border: none; background: transparent; border-radius: 8px; cursor: pointer;
+  color: var(--danger); font-size: 12px; font-weight: 500; font-family: 'Outfit', sans-serif;
+  transition: background .2s; opacity: .7;
+}
+.btn-out:hover { background: rgba(255,68,102,0.08); opacity: 1; }
+
+/* MAIN */
+.main { margin-left: 220px; padding: 32px 36px; min-height: 100vh; }
+
+.pg-head { margin-bottom: 28px; }
+.pg-title {
+  font-size: 26px; font-weight: 700; letter-spacing: -.5px;
+  display: flex; align-items: center; gap: 12px;
+}
+.pg-title .tag {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  color: var(--neon); background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2);
+  padding: 3px 10px; border-radius: 20px; letter-spacing: 1px;
+}
+.pg-sub { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 5px; }
+
+.section { display: none; }
+.section.active { display: block; animation: secIn .3s ease; }
+@keyframes secIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* GLASS CARDS */
+.gcard {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px; margin-bottom: 20px;
+  position: relative; overflow: hidden;
+  transition: border-color .2s;
+}
+.gcard:hover { border-color: var(--border2); }
+.gcard::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,255,136,0.3), transparent);
+  opacity: 0; transition: opacity .3s;
+}
+.gcard:hover::before { opacity: 1; }
+
+.gcard-title {
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+}
+.gcard-title .ct-accent { color: var(--neon); }
+
+/* STATS */
+.stats-strip { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
+.stat-block {
+  background: var(--glass); backdrop-filter: blur(12px);
+  border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px;
+  position: relative; overflow: hidden; cursor: default;
+  transition: transform .2s, border-color .2s;
+}
+.stat-block:hover { transform: translateY(-2px); border-color: var(--border2); }
+.stat-block::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+}
+.stat-block.s1::after { background: linear-gradient(90deg, var(--neon), transparent); }
+.stat-block.s2::after { background: linear-gradient(90deg, var(--neon2), transparent); }
+.stat-block.s3::after { background: linear-gradient(90deg, var(--warn), transparent); }
+.sb-label { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+.sb-num { font-size: 32px; font-weight: 800; font-family: 'JetBrains Mono', monospace; line-height: 1; }
+.stat-block.s1 .sb-num { color: var(--neon); text-shadow: 0 0 20px rgba(0,255,136,.4); }
+.stat-block.s2 .sb-num { color: var(--neon2); text-shadow: 0 0 20px rgba(0,204,255,.4); }
+.stat-block.s3 .sb-num { font-size: 13px; color: var(--warn); padding-top: 8px; word-break: break-all; }
+
+/* TABLE */
+.tbl-wrap { overflow-x: auto; border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 10px 16px; text-align: left; font-size: 9px; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace;
+  border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2);
+}
+tbody td {
+  padding: 12px 16px; border-bottom: 1px solid rgba(0,255,136,0.04);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr { transition: background .15s; }
+tbody tr:hover td { background: rgba(0,255,136,0.03); }
+
+/* FIELD */
+.field { margin-bottom: 20px; }
+.fl-label {
+  font-size: 10px; font-weight: 600; color: var(--muted); margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 1.5px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+.fl-label .la { color: var(--neon); opacity: .7; }
+.fl-inp {
+  width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 13px;
+  font-family: 'JetBrains Mono', monospace; outline: none; transition: all .2s;
+}
+.fl-inp:focus { border-color: var(--neon); box-shadow: 0 0 0 2px rgba(0,255,136,0.1); background: rgba(0,255,136,0.02); }
+.fl-hint { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 6px; }
+
+/* CREDS PREVIEW */
+.creds-box {
+  display: none; margin: -6px 0 20px;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(0,255,136,0.15); border-radius: 10px;
+  padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+}
+.cr-row { display: flex; gap: 12px; margin-bottom: 5px; }
+.cr-row:last-child { margin-bottom: 0; }
+.cr-k { color: var(--muted); min-width: 72px; }
+.cr-k::after { content: ':'; }
+.cr-v { color: var(--neon); font-weight: 700; }
+.cr-v.em { color: var(--muted); }
+
+/* RAM GRID */
+.ram-wrap { margin-bottom: 20px; }
+.ram-cards { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; }
+.rc {
+  padding: 14px 6px; border: 1px solid var(--border); border-radius: 10px;
+  background: rgba(0,0,0,0.3); cursor: pointer; text-align: center;
+  transition: all .2s; position: relative; overflow: hidden;
+}
+.rc:hover { border-color: var(--border2); transform: translateY(-2px); }
+.rc.sel {
+  border-color: var(--neon); background: rgba(0,255,136,0.08);
+  box-shadow: 0 0 16px rgba(0,255,136,0.1), inset 0 0 20px rgba(0,255,136,0.04);
+}
+.rc.unli { border-color: rgba(255,170,0,0.2); grid-column: span 5; padding: 12px; }
+.rc.unli.sel { border-color: var(--warn); background: rgba(255,170,0,0.08); box-shadow: 0 0 16px rgba(255,170,0,0.1); }
+.rc-num {
+  font-size: 15px; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+  color: var(--muted); transition: color .2s;
+}
+.rc.sel .rc-num { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
+.rc.unli.sel .rc-num { color: var(--warn); text-shadow: 0 0 10px var(--warn); }
+.rc-sub { font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 3px; opacity: .6; }
+.rc.sel .rc-sub { opacity: .8; }
+.rc::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(0,255,136,0.05), transparent);
+  opacity: 0; transition: opacity .2s;
+}
+.rc.sel::before { opacity: 1; }
+
+.specs-line {
+  display: none; gap: 20px; padding: 12px 16px; margin-top: 10px;
+  background: rgba(0,0,0,0.4); border-radius: 10px; border: 1px solid rgba(0,255,136,0.1);
+}
+.sp-it .sp-l { font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1px; }
+.sp-it .sp-v { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--neon); }
+
+/* BUTTONS */
+.btn-main {
+  width: 100%; padding: 15px; border: none; border-radius: 10px; cursor: pointer;
+  font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px; text-transform: uppercase; transition: all .25s;
+  display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 22px;
+  background: linear-gradient(135deg, rgba(0,255,136,0.15), rgba(0,255,136,0.05));
+  color: var(--neon); border: 1px solid rgba(0,255,136,0.35);
+  box-shadow: 0 0 20px rgba(0,255,136,0.08);
+}
+.btn-main:hover:not(:disabled) {
+  background: rgba(0,255,136,0.2); box-shadow: var(--glow); transform: translateY(-1px);
+}
+.btn-main:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+
+.btn-sm {
+  padding: 6px 14px; border-radius: 7px; font-size: 10px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .15s; font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .5px; text-transform: uppercase;
+}
+.btn-sm.del { background: rgba(255,68,102,0.1); color: var(--danger); border: 1px solid rgba(255,68,102,0.2); }
+.btn-sm.del:hover { background: rgba(255,68,102,0.2); }
+.btn-sm.ref { background: rgba(0,0,0,0.4); color: var(--muted); border: 1px solid var(--border); }
+.btn-sm.ref:hover { color: var(--text); border-color: var(--border2); }
+.btn-sm.pri { background: rgba(0,255,136,0.1); color: var(--neon); border: 1px solid rgba(0,255,136,0.25); }
+.btn-sm.pri:hover { background: rgba(0,255,136,0.2); box-shadow: 0 0 12px rgba(0,255,136,0.15); }
+
+/* SPINNER */
+.spin { width: 16px; height: 16px; border: 2px solid rgba(0,255,136,0.2); border-top-color: var(--neon); border-radius: 50%; animation: rot .7s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+
+/* RESULT */
+.result-wrap {
+  display: none; margin-top: 20px;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(0,255,136,0.25); border-radius: 16px;
+  overflow: hidden; animation: secIn .4s ease;
+}
+.result-header {
+  padding: 16px 22px; border-bottom: 1px solid rgba(0,255,136,0.1);
+  background: rgba(0,255,136,0.05);
+  font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  color: var(--neon); display: flex; align-items: center; gap: 8px;
+}
+.result-header::before { content: '✓'; width: 20px; height: 20px; background: rgba(0,255,136,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+.result-body { padding: 22px; }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.r-box { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.r-box.full { grid-column: 1/-1; }
+.r-box-label { font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+.r-box-val { font-size: 16px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); word-break: break-all; }
+.r-box.domain .r-box-val { color: var(--neon2); }
+.r-copy {
+  margin-top: 8px; font-size: 10px; padding: 4px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  cursor: pointer; font-family: 'JetBrains Mono', monospace; transition: all .15s;
+}
+.r-copy:hover { color: var(--neon); border-color: rgba(0,255,136,0.3); }
+.spec-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  padding: 4px 12px; border-radius: 20px; font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  background: rgba(0,255,136,0.07); color: var(--neon); border: 1px solid rgba(0,255,136,0.15);
+}
+.chip.gold { background: rgba(255,170,0,0.07); color: var(--warn); border-color: rgba(255,170,0,0.2); }
+
+/* BADGE */
+.bdg { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+.bdg.on { background: rgba(0,255,136,0.1); color: var(--neon); border: 1px solid rgba(0,255,136,0.2); }
+.bdg.off { background: rgba(255,68,102,0.1); color: var(--danger); border: 1px solid rgba(255,68,102,0.2); }
+.bdg.gd { background: rgba(255,170,0,0.1); color: var(--warn); border: 1px solid rgba(255,170,0,0.2); }
+
+.flex-b { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+
+/* NOTIF */
+.notif {
+  position: fixed; top: 20px; right: 20px; z-index: 999;
+  padding: 13px 18px; border-radius: 10px; font-size: 11px;
+  font-family: 'JetBrains Mono', monospace; display: none;
+  animation: notifIn .3s ease; max-width: 280px; backdrop-filter: blur(12px);
+}
+@keyframes notifIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+.notif.ok  { background: rgba(0,20,12,0.9); border: 1px solid rgba(0,255,136,0.3); color: var(--neon); }
+.notif.err { background: rgba(20,0,8,0.9);  border: 1px solid rgba(255,68,102,0.3); color: var(--danger); }
+.notif.inf { background: rgba(0,12,20,0.9);  border: 1px solid rgba(0,204,255,0.3); color: var(--neon2); }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.15); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,255,136,0.3); }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas">
+  <div class="grid-lines"></div>
+  <div class="scanline"></div>
+</div>
+<div class="notif" id="notif"></div>
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="logo-block">
+      <div class="logo-hex"><span class="hex-inner">⚡</span></div>
+      <div class="logo-name"><span class="n1">Arsena</span><span class="n2">Panel</span></div>
+      <div class="logo-tag">pterodactyl <span>//</span> reseller</div>
+    </div>
+
+    <div class="role-pills">
+      <button class="pill active" id="p-res" onclick="setRole('reseller')">[ reseller ]</button>
+      <button class="pill own-pill" id="p-own" onclick="setRole('owner')">[ owner ]</button>
+    </div>
+
+    <div class="f-wrap">
+      <div class="f-label">access_key</div>
+      <input class="f-inp" type="password" id="key-inp" placeholder="••••••••••••••••" autocomplete="off">
+    </div>
+    <button class="btn-enter res-btn" id="btn-login" onclick="doLogin()">→ authenticate</button>
+    <div class="login-err" id="login-err">invalid key — access denied</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="sidebar">
+    <div class="sb-top">
+      <div class="sb-logo-text"><span class="g">Arsena</span>Panel</div>
+      <div class="sb-ver">v2.0 // pterodactyl</div>
+      <div class="sb-role res" id="sb-role">reseller</div>
+    </div>
+
+    <div class="sb-group">
+      <div class="sb-group-label">menu</div>
+      <button class="nav-btn active" onclick="goTo('home',this)"><span class="n-icon">◈</span> Dashboard <span class="n-dot"></span></button>
+      <button class="nav-btn" onclick="goTo('create',this)"><span class="n-icon">⊕</span> Buat Server <span class="n-dot"></span></button>
+      <button class="nav-btn" onclick="goTo('servers',this)"><span class="n-icon">▣</span> List Server <span class="n-dot"></span></button>
+    </div>
+
+    <div class="sb-group" id="owner-nav" style="display:none">
+      <div class="sb-group-label">owner</div>
+      <button class="nav-btn" onclick="goTo('users',this)"><span class="n-icon">◉</span> Manage User <span class="n-dot"></span></button>
+    </div>
+
+    <div class="sb-bottom">
+      <button class="btn-out" onclick="doLogout()"><span>⏻</span> Keluar</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- HOME -->
+    <div class="section active" id="sec-home">
+      <div class="pg-head">
+        <div class="pg-title">Dashboard <span class="tag">LIVE</span></div>
+        <div class="pg-sub">// xarsena.pterohost.biz.id — sistem aktif</div>
+      </div>
+      <div class="stats-strip">
+        <div class="stat-block s1"><div class="sb-label">total_servers</div><div class="sb-num" id="stat-srv">—</div></div>
+        <div class="stat-block s2"><div class="sb-label">total_users</div><div class="sb-num" id="stat-usr">—</div></div>
+        <div class="stat-block s3"><div class="sb-label">panel_host</div><div class="sb-num">xarsena.pterohost.biz.id</div></div>
+      </div>
+      <div class="gcard">
+        <div class="flex-b">
+          <div class="gcard-title"><span class="ct-accent">▸</span> server_list</div>
+          <button class="btn-sm ref" onclick="loadDashboard()">↻ refresh</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>name</th><th>ram</th><th>cpu</th><th>disk</th><th>status</th></tr></thead>
+            <tbody id="home-tbl"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px">→ klik refresh untuk memuat</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE -->
+    <div class="section" id="sec-create">
+      <div class="pg-head">
+        <div class="pg-title">Deploy Server</div>
+        <div class="pg-sub">// input username → pilih ram → execute</div>
+      </div>
+
+      <div class="gcard">
+        <div class="gcard-title"><span class="ct-accent">▸</span> user_config</div>
+        <div class="field">
+          <div class="fl-label"><span class="la">//</span> username</div>
+          <input class="fl-inp" id="c-user" placeholder="contoh: budi" oninput="previewCreds()" autocomplete="off">
+          <div class="fl-hint">// huruf kecil & angka — password auto: username + 01</div>
+        </div>
+
+        <div class="creds-box" id="creds-box">
+          <div class="cr-row"><span class="cr-k">user</span><span class="cr-v" id="pr-u">—</span></div>
+          <div class="cr-row"><span class="cr-k">pass</span><span class="cr-v" id="pr-p">—</span></div>
+          <div class="cr-row"><span class="cr-k">email</span><span class="cr-v em" id="pr-e">—</span></div>
+        </div>
+
+        <div class="gcard-title" style="margin-top:4px"><span class="ct-accent">▸</span> resource_allocation</div>
+        <div class="ram-wrap">
+          <div class="ram-cards">
+            <div class="rc" onclick="pickRam(this,1000,1000,40)"><div class="rc-num">1GB</div><div class="rc-sub">cpu 40%</div></div>
+            <div class="rc" onclick="pickRam(this,2000,1000,60)"><div class="rc-num">2GB</div><div class="rc-sub">cpu 60%</div></div>
+            <div class="rc" onclick="pickRam(this,3000,2000,80)"><div class="rc-num">3GB</div><div class="rc-sub">cpu 80%</div></div>
+            <div class="rc" onclick="pickRam(this,4000,2000,100)"><div class="rc-num">4GB</div><div class="rc-sub">cpu 100%</div></div>
+            <div class="rc" onclick="pickRam(this,5000,3000,120)"><div class="rc-num">5GB</div><div class="rc-sub">cpu 120%</div></div>
+            <div class="rc" onclick="pickRam(this,6000,3000,140)"><div class="rc-num">6GB</div><div class="rc-sub">cpu 140%</div></div>
+            <div class="rc" onclick="pickRam(this,7000,4000,160)"><div class="rc-num">7GB</div><div class="rc-sub">cpu 160%</div></div>
+            <div class="rc" onclick="pickRam(this,8000,4000,180)"><div class="rc-num">8GB</div><div class="rc-sub">cpu 180%</div></div>
+            <div class="rc" onclick="pickRam(this,9000,5000,200)"><div class="rc-num">9GB</div><div class="rc-sub">cpu 200%</div></div>
+            <div class="rc" onclick="pickRam(this,10000,5000,220)"><div class="rc-num">10GB</div><div class="rc-sub">cpu 220%</div></div>
+            <div class="rc unli" onclick="pickRam(this,0,0,0)"><div class="rc-num">♾ UNLIMITED</div><div class="rc-sub">ram · cpu · disk — no limits</div></div>
+          </div>
+          <div class="specs-line" id="specs-line">
+            <div class="sp-it"><div class="sp-l">ram</div><div class="sp-v" id="sp-r">—</div></div>
+            <div class="sp-it"><div class="sp-l">cpu</div><div class="sp-v" id="sp-c">—</div></div>
+            <div class="sp-it"><div class="sp-l">disk</div><div class="sp-v" id="sp-d">—</div></div>
+          </div>
+        </div>
+
+        <button class="btn-main" id="btn-create" onclick="createServer()">→ deploy server</button>
+      </div>
+
+      <!-- RESULT -->
+      <div class="result-wrap" id="result-wrap">
+        <div class="result-header">server deployed successfully</div>
+        <div class="result-body">
+          <div class="result-grid">
+            <div class="r-box">
+              <div class="r-box-label">username</div>
+              <div class="r-box-val" id="r-user">—</div>
+              <button class="r-copy" onclick="cp('r-user')">⎘ copy</button>
+            </div>
+            <div class="r-box">
+              <div class="r-box-label">password</div>
+              <div class="r-box-val" id="r-pass">—</div>
+              <button class="r-copy" onclick="cp('r-pass')">⎘ copy</button>
+            </div>
+            <div class="r-box domain full">
+              <div class="r-box-label">domain_login</div>
+              <div class="r-box-val" id="r-domain">—</div>
+              <button class="r-copy" onclick="cp('r-domain')">⎘ copy</button>
+            </div>
+          </div>
+          <div class="spec-chips" id="r-chips"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVERS -->
+    <div class="section" id="sec-servers">
+      <div class="flex-b">
+        <div class="pg-head" style="margin-bottom:0"><div class="pg-title">List Server</div><div class="pg-sub">// semua server aktif di panel</div></div>
+        <button class="btn-sm pri" onclick="fetchServers()">↻ refresh</button>
+      </div>
+      <div class="gcard" style="padding:0">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>id</th><th>name</th><th>ram</th><th>cpu</th><th>disk</th><th>status</th><th>action</th></tr></thead>
+            <tbody id="srv-tbl"><tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">→ klik refresh untuk memuat</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="section" id="sec-users">
+      <div class="flex-b">
+        <div class="pg-head" style="margin-bottom:0"><div class="pg-title">Manage User</div><div class="pg-sub">// daftar semua user</div></div>
+        <button class="btn-sm pri" onclick="fetchUsers()">↻ refresh</button>
+      </div>
+      <div class="gcard" style="padding:0">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>id</th><th>email</th><th>username</th><th>role</th><th>action</th></tr></thead>
+            <tbody id="usr-tbl"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px">→ klik refresh untuk memuat</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// === CONFIG ===
+const PANEL  = 'https://xarsena.pterohost.biz.id';
+const PTLA   = 'ptla_2HzpqAthds4hMgLRdnmTCWbgZQIDd6C1zpzSwlELHB2';
+const PTLC   = 'ptlc_hwdvKV5V9yxWeMYI5VRgIWUIcJKjOAca8sg6DkW0nZh';
+const EGG    = '15';
+const NESTID = '5';
+const LOC    = 1;
+const KEYS   = { reseller: 'RessPanelArsena', owner: 'ArsenaDev' };
+
+let role = 'reseller', selRam = null;
+
+// particles
+for (let i = 0; i < 12; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const s = Math.random() * 4 + 2;
+  p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${8+Math.random()*12}s;animation-delay:${Math.random()*10}s`;
+  document.querySelector('.bg-canvas').appendChild(p);
+}
+
+// === LOGIN ===
+function setRole(r) {
+  role = r;
+  document.getElementById('p-res').classList.toggle('active', r==='reseller');
+  document.getElementById('p-own').classList.toggle('active', r==='owner');
+  document.getElementById('btn-login').className = 'btn-enter ' + (r==='owner' ? 'own-btn' : 'res-btn');
+}
+
+function doLogin() {
+  const val = document.getElementById('key-inp').value.trim();
+  if (val !== KEYS[role]) {
+    const e = document.getElementById('login-err');
+    e.style.display = 'block';
+    setTimeout(() => e.style.display='none', 2500);
+    return;
+  }
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  const badge = document.getElementById('sb-role');
+  if (role === 'owner') {
+    badge.textContent = 'owner'; badge.className = 'sb-role own';
+    document.getElementById('owner-nav').style.display = 'block';
+  }
+  notify('inf', `→ authenticated as ${role}`);
+  loadDashboard();
+}
+
+function doLogout() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('key-inp').value = '';
+  selRam = null;
+  document.getElementById('result-wrap').style.display = 'none';
+}
+
+document.getElementById('key-inp').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+// === API ===
+async function ptero(path, method='GET', body=null) {
+  const opts = { method, headers: { 'Content-Type':'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const proxyUrl = '/api/proxy?path=' + encodeURIComponent(path);
+  const res = await fetch(proxyUrl, opts);
+  if (res.status === 204) return {};
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.errors?.[0]?.detail || data.error || 'HTTP ' + res.status);
+  return data;
+}
+
+// === DASHBOARD ===
+async function loadDashboard() {
+  try {
+    const [s, u] = await Promise.all([ptero('/api/application/servers'), ptero('/api/application/users')]);
+    document.getElementById('stat-srv').textContent = s.meta?.pagination?.total ?? s.data.length;
+    document.getElementById('stat-usr').textContent = u.meta?.pagination?.total ?? u.data.length;
+    const tb = document.getElementById('home-tbl');
+    if (!s.data.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">// no servers found</td></tr>'; return; }
+    tb.innerHTML = s.data.map(x => {
+      const a = x.attributes;
+      return `<tr>
+        <td><strong>${a.name}</strong></td>
+        <td>${a.limits.memory===0?'<span class="bdg gd">unlimited</span>':(a.limits.memory/1000)+'GB'}</td>
+        <td>${a.limits.cpu===0?'<span class="bdg gd">unlimited</span>':a.limits.cpu+'%'}</td>
+        <td>${a.limits.disk===0?'<span class="bdg gd">unlimited</span>':(a.limits.disk/1000)+'GB'}</td>
+        <td><span class="bdg on">active</span></td>
+      </tr>`;
+    }).join('');
+  } catch(e) { notify('err', '// error: ' + e.message); }
+}
+
+// === PREVIEW ===
+function previewCreds() {
+  const u = document.getElementById('c-user').value.trim().toLowerCase();
+  const box = document.getElementById('creds-box');
+  if (!u) { box.style.display='none'; return; }
+  box.style.display = 'block';
+  document.getElementById('pr-u').textContent = u;
+  document.getElementById('pr-p').textContent = u + '01';
+  document.getElementById('pr-e').textContent = u + '@arsena.com';
+}
+
+// === RAM PICK ===
+function pickRam(el, ram, disk, cpu) {
+  document.querySelectorAll('.rc').forEach(r => r.classList.remove('sel'));
+  el.classList.add('sel');
+  selRam = { ram, disk, cpu };
+  const sl = document.getElementById('specs-line');
+  sl.style.display = 'flex';
+  document.getElementById('sp-r').textContent = ram===0 ? 'unlimited' : (ram/1000)+'GB';
+  document.getElementById('sp-c').textContent = cpu===0 ? 'unlimited' : cpu+'%';
+  document.getElementById('sp-d').textContent = disk===0 ? 'unlimited' : (disk/1000)+'GB';
+}
+
+// === CREATE ===
+async function createServer() {
+  const username = document.getElementById('c-user').value.trim().toLowerCase();
+  if (!username) return notify('err', '// error: isi username dulu');
+  if (!/^[a-z0-9]+$/.test(username)) return notify('err', '// error: huruf kecil & angka saja');
+  if (!selRam) return notify('err', '// error: pilih RAM dulu');
+
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> deploying...';
+  document.getElementById('result-wrap').style.display = 'none';
+
+  const email = username + '@arsena.com';
+  const password = username + '01';
+  const name = username.charAt(0).toUpperCase() + username.slice(1) + ' Server';
+  const { ram, disk, cpu } = selRam;
+
+  try {
+    notify('inf', '// creating user...');
+    const uRes = await ptero('/api/application/users', 'POST', {
+      email, username, first_name: name, last_name: 'Server', language: 'en', password
+    });
+    const userId = uRes.attributes.id;
+
+    notify('inf', '// fetching egg config...');
+    const eggRes = await ptero(`/api/application/nests/${NESTID}/eggs/${EGG}`);
+    const startup = eggRes.attributes.startup;
+
+    notify('inf', '// deploying server...');
+    const srvRes = await ptero('/api/application/servers', 'POST', {
+      name, description: new Date().toLocaleDateString('id-ID'),
+      user: userId, egg: parseInt(EGG),
+      docker_image: 'ghcr.io/parkervcp/yolks:nodejs_20',
+      startup,
+      environment: { INST: 'npm', USER_UPLOAD: '0', AUTO_UPDATE: '0', CMD_RUN: 'npm start' },
+      limits: { memory: ram, swap: 0, disk, io: 500, cpu },
+      feature_limits: { databases: 5, backups: 5, allocations: 5 },
+      deploy: { locations: [LOC], dedicated_ip: false, port_range: [] }
+    });
+
+    const srv = srvRes.attributes;
+    document.getElementById('r-user').textContent = username;
+    document.getElementById('r-pass').textContent = password;
+    document.getElementById('r-domain').textContent = PANEL;
+    document.getElementById('r-chips').innerHTML = [
+      `<span class="chip">ram: ${ram===0?'unlimited':(ram/1000)+'GB'}</span>`,
+      `<span class="chip">cpu: ${cpu===0?'unlimited':cpu+'%'}</span>`,
+      `<span class="chip">disk: ${disk===0?'unlimited':(disk/1000)+'GB'}</span>`,
+      `<span class="chip ${ram===0?'gold':''}">id: ${srv.id}</span>`
+    ].join('');
+
+    document.getElementById('result-wrap').style.display = 'block';
+    document.getElementById('result-wrap').scrollIntoView({ behavior: 'smooth' });
+    notify('ok', '// server deployed successfully');
+
+    document.getElementById('c-user').value = '';
+    document.getElementById('creds-box').style.display = 'none';
+    document.querySelectorAll('.rc').forEach(r => r.classList.remove('sel'));
+    document.getElementById('specs-line').style.display = 'none';
+    selRam = null;
+    loadDashboard();
+  } catch(e) {
+    notify('err', '// error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '→ deploy server';
+  }
+}
+
+// === LIST SERVERS ===
+async function fetchServers() {
+  notify('inf', '// fetching servers...');
+  try {
+    const data = await ptero('/api/application/servers');
+    const tb = document.getElementById('srv-tbl');
+    if (!data.data.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">// no servers found</td></tr>'; return; }
+    tb.innerHTML = data.data.map(x => {
+      const a = x.attributes;
+      return `<tr>
+        <td>${a.id}</td><td><strong>${a.name}</strong></td>
+        <td>${a.limits.memory===0?'<span class="bdg gd">unli</span>':(a.limits.memory/1000)+'GB'}</td>
+        <td>${a.limits.cpu===0?'<span class="bdg gd">unli</span>':a.limits.cpu+'%'}</td>
+        <td>${a.limits.disk===0?'<span class="bdg gd">unli</span>':(a.limits.disk/1000)+'GB'}</td>
+        <td><span class="bdg on">active</span></td>
+        <td><button class="btn-sm del" onclick="delServer(${a.id},'${a.name.replace(/'/g,"\\'")}',${a.user})">✕ hapus</button></td>
+      </tr>`;
+    }).join('');
+    notify('ok', `// ${data.data.length} servers loaded`);
+  } catch(e) { notify('err', '// error: ' + e.message); }
+}
+
+async function delServer(id, name, userId) {
+  if (!confirm(`Hapus server "${name}"?\nUser terkait juga akan dihapus.`)) return;
+  try {
+    await ptero('/api/application/servers/' + id, 'DELETE');
+    try { await ptero('/api/application/users/' + userId, 'DELETE'); } catch(_) {}
+    notify('ok', '// server & user deleted');
+    fetchServers(); loadDashboard();
+  } catch(e) { notify('err', '// error: ' + e.message); }
+}
+
+// === USERS ===
+async function fetchUsers() {
+  notify('inf', '// fetching users...');
+  try {
+    const data = await ptero('/api/application/users');
+    const tb = document.getElementById('usr-tbl');
+    if (!data.data.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">// no users found</td></tr>'; return; }
+    tb.innerHTML = data.data.map(x => {
+      const a = x.attributes;
+      return `<tr>
+        <td>${a.id}</td><td>${a.email}</td><td>${a.username}</td>
+        <td><span class="bdg ${a.root_admin?'gd':'on'}">${a.root_admin?'admin':'user'}</span></td>
+        <td><button class="btn-sm del" onclick="delUser(${a.id},'${a.email.replace(/'/g,"\\'")}')">✕ hapus</button></td>
+      </tr>`;
+    }).join('');
+    notify('ok', `// ${data.data.length} users loaded`);
+  } catch(e) { notify('err', '// error: ' + e.message); }
+}
+
+async function delUser(id, email) {
+  if (!confirm(`Hapus user "${email}"?`)) return;
+  try {
+    await ptero('/api/application/users/' + id, 'DELETE');
+    notify('ok', '// user deleted');
+    fetchUsers();
+  } catch(e) { notify('err', '// error: ' + e.message); }
+}
+
+// === UTILS ===
+function cp(id) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent)
+    .then(() => notify('ok', '// copied to clipboard'));
+}
+
+function goTo(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+let _nt;
+function notify(type, msg) {
+  const el = document.getElementById('notif');
+  el.className = 'notif ' + type;
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(_nt);
+  _nt = setTimeout(() => el.style.display='none', 3000);
+}
+</script>
+</body>
+</html>
